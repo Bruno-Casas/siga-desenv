@@ -1,0 +1,5 @@
+**/deployments/*
+**/mysql
+!**/deployments/.gitkeep
+.env
+*/logs

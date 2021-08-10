@@ -1,0 +1,91 @@
+version: '3.9'
+
+services:
+  app:
+    image: brunocasas/siga-base
+    container_name: sigadev-app
+    env_file:
+      - ./.env
+    links:
+      - viz
+      - bluc
+      - db
+      - assijus
+    ports:
+      - "9990:9990"
+      - "8787:8787"
+    volumes:
+      - ./data/props/default.properties:/opt/jboss/siga/default.properties:ro
+      - ./data/configs:/opt/jboss/siga/configs:ro
+      - ./data/deployments:/opt/jboss/siga/deployments:ro
+
+  db:
+    image: mysql:8.0.25
+    container_name: sigadev-db
+    command: --default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1
+    restart: always
+    volumes:
+      - "./data/mysql:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: SigaAdmin
+
+  nginx:
+    container_name: sigadev-nginx
+    build: ./services/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - app
+
+  viz:
+    image: omerio/graphviz-server
+    container_name: sigadev-viz
+    command: "8080"
+
+  bluc:
+    build: ./services/blucservice
+    container_name: sigadev-bluc
+    volumes:
+      - ./logs/bluc:/var/log
+
+  assijus:
+    build: ./services/assijus
+    container_name: sigadev-assijus
+    ports:
+      - "8484:8080"
+    volumes:
+      - ./logs/assijus:/var/log
+    links:
+      - bluc
+      - testsigner
+      - redis
+    environment:
+      PROP_ASSIJUS_REDIS_MASTER_HOST: redis
+      PROP_ASSIJUS_REDIS_MASTER_PORT: 6379
+      PROP_ASSIJUS_REDIS_SLAVE_HOST:
+      PROP_ASSIJUS_REDIS_SLAVE_PORT:
+      PROP_ASSIJUS_REDIS_PASSWORD: sigadesenv
+      PROP_ASSIJUS_REDIS_DATABASE: 1
+      PROP_ASSIJUS_BLUCSERVICE_URL: http://bluc:8080/blucservice/api/v1
+      PROP_ASSIJUS_POPUP_URLS: http://localhost:8080
+      PROP_ASSIJUS_SYSTEMS: testsigner
+      PROP_ASSIJUS_TESTSIGNER_URL: http://testsigner:8080/testsigner/api/v1
+      PROP_ASSIJUS_TESTSIGNER_PASSWORD: sigadesenvteste
+      # PROP_ASSIJUS_TIMESTAMP_PUBLIC_KEY:
+      # PROP_ASSIJUS_TIMESTAMP_PRIVATE_KEY:
+
+  redis:
+    image: redis
+    container_name: sigadev-redis
+    command: redis-server --requirepass sigadesenv
+    ports:
+      - "6379:6379"
+
+  testsigner:
+    build: ./services/testsigner
+    container_name: sigadev-testsigner
+    ports:
+      - "5002:8080"
+    environment:
+      PROP_TESTSIGNER_PASSWORD: "***GUID***"
