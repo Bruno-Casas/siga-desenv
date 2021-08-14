@@ -15,9 +15,9 @@ services:
       - "9990:9990"
       - "8787:8787"
     volumes:
-      - ./data/props/default.properties:/opt/jboss/siga/default.properties:ro
-      - ./data/configs:/opt/jboss/siga/configs:ro
-      - ./data/deployments:/opt/jboss/siga/deployments:ro
+      - ./data/props/default.properties:/opt/jboss/siga/default.properties
+      - ./data/configs:/opt/jboss/siga/configs
+      - ./data/deployments:/opt/jboss/siga/deployments
 
   db:
     image: mysql:8.0.25
@@ -28,6 +28,17 @@ services:
       - "./data/mysql:/var/lib/mysql"
     environment:
       MYSQL_ROOT_PASSWORD: SigaAdmin
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: sigadev-phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      - PMA_ARBITRARY=1
+    links:
+      - db
 
   nginx:
     container_name: sigadev-nginx
