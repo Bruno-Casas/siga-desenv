@@ -3,74 +3,74 @@ version: '3.9'
 services:
   app:
     image: brunocasas/siga-base
-    container_name: sigadev-app
     env_file:
       - ./.env
-    links:
-      - viz
-      - bluc
-      - db
-      - assijus
     ports:
-      - "9990:9990"
-      - "8787:8787"
+      - target: 40143
+        published: 40143
     volumes:
       - ./data/props/default.properties:/opt/jboss/siga/default.properties
       - ./data/configs:/opt/jboss/siga/configs
       - ./data/deployments:/opt/jboss/siga/deployments
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=siga_default"
+        - "traefik.http.routers.siga.entrypoints=web"
+        - "traefik.http.routers.siga.service=siga"
+        - "traefik.http.routers.siga.rule=PathPrefix(`/`)"
+        - "traefik.http.services.siga.loadbalancer.server.port=8080"
+        - "traefik.http.services.siga.loadBalancer.sticky.cookie=true"
+        - "traefik.http.services.siga.loadBalancer.sticky.cookie.name=siga-sticky"
+        - "traefik.http.routers.admin.entrypoints=admin"
+        - "traefik.http.routers.admin.service=admin"
+        - "traefik.http.routers.admin.rule=PathPrefix(`/`)"
+        - "traefik.http.services.admin.loadbalancer.server.port=9990"
+      restart_policy:
+        condition: on-failure
 
   db:
     image: mysql:8.0.25
-    container_name: sigadev-db
     command: --default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1
-    restart: always
     volumes:
       - "./data/mysql:/var/lib/mysql"
     environment:
       MYSQL_ROOT_PASSWORD: SigaAdmin
+    ports:
+      - "3306"
 
   phpmyadmin:
     image: phpmyadmin
-    container_name: sigadev-phpmyadmin
-    restart: always
-    ports:
-      - 8080:80
     environment:
       - PMA_ARBITRARY=1
     links:
       - db
 
-  nginx:
-    container_name: sigadev-nginx
-    build: ./services/nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    links:
-      - app
+  # nginx:
+  #   build: ./services/nginx
+  #   networks:
+  #     - siga-desenv
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   links:
+  #     - app
 
   viz:
     image: omerio/graphviz-server
-    container_name: sigadev-viz
     command: "8080"
 
   bluc:
-    build: ./services/blucservice
-    container_name: sigadev-bluc
+    image: brunocasas/blucservice
     volumes:
       - ./logs/bluc:/var/log
 
   assijus:
-    build: ./services/assijus
-    container_name: sigadev-assijus
+    image: brunocasas/assijus
     ports:
       - "8484:8080"
     volumes:
       - ./logs/assijus:/var/log
-    links:
-      - bluc
-      - testsigner
-      - redis
     environment:
       PROP_ASSIJUS_REDIS_MASTER_HOST: redis
       PROP_ASSIJUS_REDIS_MASTER_PORT: 6379
@@ -86,17 +86,48 @@ services:
       # PROP_ASSIJUS_TIMESTAMP_PUBLIC_KEY:
       # PROP_ASSIJUS_TIMESTAMP_PRIVATE_KEY:
 
+  traefik:
+    image: "traefik:v2.5"
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.swarmmode=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.useBindPortIP=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.admin.address=:9990"
+      - "--accesslog"
+    ports:
+      - target: 8080
+        published: 8080
+        mode: host
+      - target: 80
+        published: 80
+        mode: host
+      - target: 9990
+        published: 9990
+        mode: host
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    depends_on:
+      - app:app
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
   redis:
     image: redis
-    container_name: sigadev-redis
     command: redis-server --requirepass sigadesenv
     ports:
       - "6379:6379"
 
-  testsigner:
-    build: ./services/testsigner
-    container_name: sigadev-testsigner
-    ports:
-      - "5002:8080"
-    environment:
-      PROP_TESTSIGNER_PASSWORD: "***GUID***"
+  # testsigner:
+  #   build: ./services/testsigner
+  #   networks:
+  #     - siga-desenv
+  #   ports:
+  #     - "5002:8080"
+  #   environment:
+  #     PROP_TESTSIGNER_PASSWORD: "***GUID***"
