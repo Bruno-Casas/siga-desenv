@@ -1,31 +1,43 @@
-version: '3.9'
+version: '3.4'
 
 services:
   app:
     image: brunocasas/siga-base
     env_file:
       - ./.env
-    ports:
-      - target: 40143
-        published: 40143
     volumes:
       - ./data/props/default.properties:/opt/jboss/siga/default.properties
       - ./data/configs:/opt/jboss/siga/configs
       - ./data/deployments:/opt/jboss/siga/deployments
+    networks:
+      - traefik-public
+      - siga-network
     deploy:
       labels:
+        # General
         - "traefik.enable=true"
-        - "traefik.docker.network=siga_default"
+        - "traefik.docker.network=traefik-public"
+        # Wildfly root redirect
+        - "traefik.http.routers.wl.service=siga"
+        - "traefik.http.routers.wl.entrypoints=web"
+        - "traefik.http.routers.wl.rule=Path(`/`)"
+        - "traefik.http.routers.wl.middlewares=wl-rerirect"
+        - "traefik.http.middlewares.wl-rerirect.redirectregex.regex=^http:\\/\\/([^\\/]+)\\/?$$"
+        - "traefik.http.middlewares.wl-rerirect.redirectregex.replacement=http://$$1/siga"
+        # Siga config
         - "traefik.http.routers.siga.entrypoints=web"
         - "traefik.http.routers.siga.service=siga"
-        - "traefik.http.routers.siga.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.siga.rule=PathPrefix(`/siga`)"
         - "traefik.http.services.siga.loadbalancer.server.port=8080"
         - "traefik.http.services.siga.loadBalancer.sticky.cookie=true"
         - "traefik.http.services.siga.loadBalancer.sticky.cookie.name=siga-sticky"
-        - "traefik.http.routers.admin.entrypoints=admin"
+        # Wildfly management console
+        - "traefik.http.routers.admin.entrypoints=web"
         - "traefik.http.routers.admin.service=admin"
-        - "traefik.http.routers.admin.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.admin.rule=PathPrefix(`/admin/wildlfy/`)"
         - "traefik.http.services.admin.loadbalancer.server.port=9990"
+        - "traefik.http.routers.admin.middlewares=admin-stripprefix"
+        - "traefik.http.middlewares.admin-stripprefix.stripprefix.prefixes=/admin/wildlfy"
       restart_policy:
         condition: on-failure
 
@@ -36,15 +48,15 @@ services:
       - "./data/mysql:/var/lib/mysql"
     environment:
       MYSQL_ROOT_PASSWORD: SigaAdmin
-    ports:
-      - "3306"
+    networks:
+      - siga-network
 
   phpmyadmin:
     image: phpmyadmin
     environment:
       - PMA_ARBITRARY=1
-    links:
-      - db
+    networks:
+      - siga-network
 
   # nginx:
   #   build: ./services/nginx
@@ -59,16 +71,18 @@ services:
   viz:
     image: omerio/graphviz-server
     command: "8080"
+    networks:
+      - siga-network
 
   bluc:
     image: brunocasas/blucservice
     volumes:
       - ./logs/bluc:/var/log
+    networks:
+      - siga-network
 
   assijus:
     image: brunocasas/assijus
-    ports:
-      - "8484:8080"
     volumes:
       - ./logs/assijus:/var/log
     environment:
@@ -85,49 +99,16 @@ services:
       PROP_ASSIJUS_TESTSIGNER_PASSWORD: sigadesenvteste
       # PROP_ASSIJUS_TIMESTAMP_PUBLIC_KEY:
       # PROP_ASSIJUS_TIMESTAMP_PRIVATE_KEY:
-
-  traefik:
-    image: "traefik:v2.5"
-    command:
-      - "--log.level=DEBUG"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.swarmmode=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.useBindPortIP=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.admin.address=:9990"
-      - "--accesslog"
-    ports:
-      - target: 8080
-        published: 8080
-        mode: host
-      - target: 80
-        published: 80
-        mode: host
-      - target: 9990
-        published: 9990
-        mode: host
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    depends_on:
-      - app:app
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
+    networks:
+      - siga-network
 
   redis:
     image: redis
     command: redis-server --requirepass sigadesenv
-    ports:
-      - "6379:6379"
+    networks:
+      - siga-network
 
-  # testsigner:
-  #   build: ./services/testsigner
-  #   networks:
-  #     - siga-desenv
-  #   ports:
-  #     - "5002:8080"
-  #   environment:
-  #     PROP_TESTSIGNER_PASSWORD: "***GUID***"
+networks:
+  traefik-public:
+    external: true
+  siga-network:
