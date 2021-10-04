@@ -31,13 +31,6 @@ services:
         - "traefik.http.services.siga.loadbalancer.server.port=8080"
         - "traefik.http.services.siga.loadBalancer.sticky.cookie=true"
         - "traefik.http.services.siga.loadBalancer.sticky.cookie.name=siga-sticky"
-        # Wildfly management console
-        - "traefik.http.routers.admin.entrypoints=web"
-        - "traefik.http.routers.admin.service=admin"
-        - "traefik.http.routers.admin.rule=PathPrefix(`/admin/wildlfy/`)"
-        - "traefik.http.services.admin.loadbalancer.server.port=9990"
-        - "traefik.http.routers.admin.middlewares=admin-stripprefix"
-        - "traefik.http.middlewares.admin-stripprefix.stripprefix.prefixes=/admin/wildlfy"
       restart_policy:
         condition: on-failure
 

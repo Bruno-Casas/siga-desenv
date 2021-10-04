@@ -11,12 +11,8 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.useBindPortIP=true"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.admin.address=:9990"
       - "--accesslog"
     ports:
-      - target: 8080
-        published: 8080
-        mode: host
       - target: 80
         published: 80
         mode: host
@@ -31,7 +27,16 @@ services:
       placement:
         constraints:
           - node.role == manager
-
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.services.traefik.loadbalancer.server.port=888"
+        - "traefik.http.routers.traefik.service=api@internal"
+        - "traefik.http.routers.traefik.rule=PathPrefix(`/admin/traefik/`) || PathPrefix(`/api`)"
+        - "traefik.http.routers.traefik.middlewares=traefik-stripprefix, traefik-basicauth"
+        - "traefik.http.middlewares.traefik-stripprefix.stripprefix.prefixes=/admin/traefik"
+        - "traefik.http.middlewares.traefik-basicauth.basicauth.users=admin:$$apr1$$4/OSVhE5$$CPrxV9riOQBlrKp0vU33Z1"
+        #admin:$$apr1$$jWWVKj4f$$JRcWvHT0RZzDlD7Hz0lFh.
+        
 networks:
   traefik-public:
     external: true
