@@ -34,15 +34,15 @@ services:
       restart_policy:
         condition: on-failure
 
-  db:
-    image: mysql:8.0.25
-    command: --default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1
-    volumes:
-      - "./data/mysql:/var/lib/mysql"
-    environment:
-      MYSQL_ROOT_PASSWORD: SigaAdmin
-    networks:
-      - siga-network
+#  db:
+#    image: mysql:8.0.25
+#    command: --default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1
+#    volumes:
+#      - "./data/mysql:/var/lib/mysql"
+#    environment:
+#      MYSQL_ROOT_PASSWORD: SigaAdmin
+#    networks:
+#      - siga-network
 
   phpmyadmin:
     image: phpmyadmin
@@ -69,8 +69,8 @@ services:
 
   bluc:
     image: brunocasas/blucservice
-    volumes:
-      - ./logs/bluc:/var/log
+#    volumes:
+#      - ./logs/bluc:/var/log
     networks:
       - siga-network
 
