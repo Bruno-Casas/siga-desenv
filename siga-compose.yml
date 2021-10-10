@@ -34,33 +34,6 @@ services:
       restart_policy:
         condition: on-failure
 
-#  db:
-#    image: mysql:8.0.25
-#    command: --default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1
-#    volumes:
-#      - "./data/mysql:/var/lib/mysql"
-#    environment:
-#      MYSQL_ROOT_PASSWORD: SigaAdmin
-#    networks:
-#      - siga-network
-
-  phpmyadmin:
-    image: phpmyadmin
-    environment:
-      - PMA_ARBITRARY=1
-    networks:
-      - siga-network
-
-  # nginx:
-  #   build: ./services/nginx
-  #   networks:
-  #     - siga-desenv
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   links:
-  #     - app
-
   viz:
     image: omerio/graphviz-server
     command: "8080"
