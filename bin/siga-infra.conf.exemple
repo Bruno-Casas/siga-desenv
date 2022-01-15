@@ -1,0 +1,4 @@
+#!/bin/bash
+
+TRAEFIK_ACME_EMAIL=<E-mail. Ex: mail@mail.com>
+SIGA_HOST=teste.com

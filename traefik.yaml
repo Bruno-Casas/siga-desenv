@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   traefik:
-    image: "traefik:v2.5"
+    image: traefik:v2.5
     command:
       - "--log.level=DEBUG"
       - "--api.insecure=true"
@@ -11,10 +11,14 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.useBindPortIP=true"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.test.address=:8181"
       - "--accesslog"
     ports:
       - target: 80
         published: 80
+        mode: host
+      - target: 8181
+        published: 8181
         mode: host
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -27,11 +31,12 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.services.traefik.loadbalancer.server.port=888"
+        - "traefik.http.routers.traefik.entrypoints=web"
         - "traefik.http.routers.traefik.service=api@internal"
         - "traefik.http.routers.traefik.rule=PathPrefix(`/admin/traefik/`) || PathPrefix(`/api`)"
-        - "traefik.http.routers.traefik.middlewares=traefik-stripprefix, traefik-basicauth"
+        - "traefik.http.routers.traefik.middlewares=traefik-stripprefix"
         - "traefik.http.middlewares.traefik-stripprefix.stripprefix.prefixes=/admin/traefik"
-        - "traefik.http.middlewares.traefik-basicauth.basicauth.users=admin:$$apr1$$4/OSVhE5$$CPrxV9riOQBlrKp0vU33Z1"
+        #- "traefik.http.middlewares.traefik-basicauth.basicauth.users=admin:$$apr1$$4/OSVhE5$$CPrxV9riOQBlrKp0vU33Z1"
         #admin:$$apr1$$jWWVKj4f$$JRcWvHT0RZzDlD7Hz0lFh.
         
 networks:

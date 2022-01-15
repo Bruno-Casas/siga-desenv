@@ -1,0 +1,28 @@
+version: '3.4'
+
+services:
+  app:
+    depends_on:
+      - db
+    deploy:
+      labels:
+        - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}.entrypoints=${ENTRY:?Ponto de entrada não definido}"
+  db:
+    image: mysql:8.0.25
+    command: --default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1
+    volumes:
+      - "./data/siga-${SIGA_SERVICE_POSTFIX-default}/db:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: SigaAdmin
+    networks:
+      - siga-network
+
+  phpmyadmin:
+    image: phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+    networks:
+      - siga-network
+#    ports:
+#      - target: 80
+#        published: 8080

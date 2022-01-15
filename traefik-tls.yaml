@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  traefik:
+    command:
+      - "--entrypoints.websecure.address=443"
+      - "--certificatesresolvers.letsresolver.acme.email=${TRAEFIK_ACME_EMAIL:?Email do acme não definido em ACME_EMAIL}"
+      - "--certificatesresolvers.letsresolver.acme.storage=./data/traefik/acme.json"
+      - "--certificatesresolvers.letsresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
