@@ -21,8 +21,25 @@ services:
     image: phpmyadmin
     environment:
       - PMA_ARBITRARY=1
+      - PMA_HOST=db
+      - PMA_ABSOLUTE_URI=http://localhost/admin/database
     networks:
       - siga-network
-    ports:
-      - target: 80
-        published: 8181
+      - traefik-public
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik-public"
+        - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.entrypoints=${ENTRY:?Ponto de entrada não definido}"
+        - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.service=siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin"
+        - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.rule=PathPrefix(`/admin/database/`)"
+        - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.middlewares=siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin-stripprefix"
+        - "traefik.http.middlewares.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin-stripprefix.stripprefix.prefixes=/admin/database"
+        - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.loadbalancer.server.port=80"
+
+networks:
+  traefik-public:
+    external: true

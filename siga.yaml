@@ -19,10 +19,10 @@ services:
         # Wildfly root redirect
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.service=siga-${SIGA_SERVICE_POSTFIX-default}"
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.entrypoints=${ENTRY:?Ponto de entrada não definido}"
-        - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.rule=PathPrefix(`/`) && !PathPrefix(`/admin`)"
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.middlewares=wildfly-${SIGA_SERVICE_POSTFIX-default}-rerirect"
-        - "traefik.http.middlewares.wildfly-${SIGA_SERVICE_POSTFIX-default}-rerirect.redirectregex.regex=^https*:\\/\\/([^\\/]+)\\/?$$"
-        - "traefik.http.middlewares.wildfly-${SIGA_SERVICE_POSTFIX-default}-rerirect.redirectregex.replacement=http://$$1/siga"
+        - "traefik.http.middlewares.wildfly-${SIGA_SERVICE_POSTFIX-default}-rerirect.redirectregex.regex=(http):\\/\\/([^\\/]+)\\/?$$"
+        - "traefik.http.middlewares.wildfly-${SIGA_SERVICE_POSTFIX-default}-rerirect.redirectregex.replacement=$$1://$$2/siga"
         # Siga config
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}.service=siga-${SIGA_SERVICE_POSTFIX-default}"
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}.rule=PathPrefix(`/siga`)"
