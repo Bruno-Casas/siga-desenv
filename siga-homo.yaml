@@ -23,6 +23,6 @@ services:
       - PMA_ARBITRARY=1
     networks:
       - siga-network
-#    ports:
-#      - target: 80
-#        published: 8080
+    ports:
+      - target: 80
+        published: 8181
