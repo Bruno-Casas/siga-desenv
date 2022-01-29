@@ -14,6 +14,7 @@ services:
       - "./data/siga-${SIGA_SERVICE_POSTFIX-default}/db:/var/lib/mysql"
     environment:
       MYSQL_ROOT_PASSWORD: SigaAdmin
+      TZ: America/Cuiaba
     networks:
       - siga-network
 
