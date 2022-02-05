@@ -50,25 +50,27 @@ deploy_siga() {
 #    exit
 #  fi
 
-  add_stack_file "$BASE_STACKS_FOLDER/siga.yaml"
+  add_stack_file "$BASE_STACKS_FOLDER/siga-base.yaml"
+  TLS=""
 
   ENTRY="web"
   while true; do
     case "$1" in
-    --prod)
+    --tls)
       shift
       if [ -z "${SIGA_HOST}" ];
-        then
-            echo "Para utilizar o siga em produção informe um valor para SIGA_HOST."
-            exit 1
-        fi
-      add_stack_file "$BASE_STACKS_FOLDER/siga-prod.yaml"
+      then
+          echo "Para utilizar o siga em produção informe um valor para SIGA_HOST."
+          exit 1
+      fi
+      TLS="true"
+      ENTRY="websecure"
       ;;
-    --homolo)
+    --test)
       shift
       add_stack_file "$BASE_STACKS_FOLDER/siga-homo.yaml"
       ;;
-    --desenv)
+    --dev)
       shift
       add_stack_file "$BASE_STACKS_FOLDER/siga-homo.yaml"
       add_stack_file "$BASE_STACKS_FOLDER/siga-dev.yaml"
@@ -77,24 +79,25 @@ deploy_siga() {
       shift
       ENTRY="test"
       ;;
-    -a)
+    --add)
       add_stack_file "$2"
       shift 2;
-      ;;
-    --)
-      shift
-      break
       ;;
     *) break ;;
     esac
   done
+
+  if [ -n "$TLS" ]; then
+    add_stack_file "$BASE_STACKS_FOLDER/siga-tls.yaml"
+  fi
 
   check_binds
   eval "SIGA_HOST=$SIGA_HOST SIGA_SERVICE_POSTFIX=$SIGA_SERVICE_POSTFIX ENTRY=$ENTRY docker stack deploy$STACKS siga-${SIGA_SERVICE_POSTFIX-default}"
 }
 
 deploy_traefik() {
-  add_stack_file "$BASE_STACKS_FOLDER/traefik.yaml"
+  add_stack_file "$BASE_STACKS_FOLDER/traefik-base.yaml"
+  TLS=""
 
   while true; do
     case "$1" in
@@ -105,17 +108,25 @@ deploy_traefik() {
           echo "Para utilizar o traefik com tls informe um valor para TRAEFIK_ACME_EMAIL."
           exit 1
       fi
-      add_stack_file "$BASE_STACKS_FOLDER/traefik-tls.yaml"
-      ;;
-    --)
-      shift
+      if [ -z "${TRAEFIK_HOST}" ];
+      then
+          echo "Para utilizar o traefik com tls informe um valor para TRAEFIK_HOST."
+          exit 1
+      fi
+      TLS="true"
       break
       ;;
     *) break ;;
     esac
   done
 
-  eval "TRAEFIK_ACME_EMAIL=$TRAEFIK_ACME_EMAIL docker stack deploy$STACKS traefik"
+  if [ -n "$TLS" ]; then
+    add_stack_file "$BASE_STACKS_FOLDER/traefik-tls.yaml"
+  else
+     add_stack_file "$BASE_STACKS_FOLDER/traefik-default.yaml"
+  fi
+
+  eval "TRAEFIK_ACME_EMAIL=$TRAEFIK_ACME_EMAIL TRAEFIK_AUTH=$TRAEFIK_AUTH TRAEFIK_HOST=$TRAEFIK_HOST docker stack deploy$STACKS traefik"
 }
 
 deploy_swarmpit() {
@@ -129,40 +140,25 @@ deploy_command() {
     docker network create --driver=overlay traefik-public
   fi
 
-  while true; do
-    case "$1" in
-    traefik)
-      shift
-      echo "$*"
-      eval "deploy_traefik $*"
-      ;;
-    siga)
-      shift
-      eval "deploy_siga $*"
-      ;;
-    swarmpit)
-      shift
-      eval "deploy_swarmpit $*"
-      ;;
-    --)
-      shift
-      break
-      ;;
-    *) break ;;
-    esac
-  done
+  case "$1" in
+  traefik)
+    shift
+    eval "deploy_traefik $*"
+    ;;
+  siga)
+    shift
+    eval "deploy_siga $*"
+    ;;
+  swarmpit)
+    shift
+    eval "deploy_swarmpit $*"
+    ;;
+  esac
 }
 
-while true; do
-  case "$1" in
-  deploy)
-    shift
-    eval "deploy_command $*"
-    ;;
-  --)
-    shift
-    break
-    ;;
-  *) break ;;
-  esac
-done
+case "$1" in
+deploy)
+  shift
+  eval "deploy_command $*"
+  ;;
+esac

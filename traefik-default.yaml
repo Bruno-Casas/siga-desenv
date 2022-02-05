@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  traefik:
+    deploy:
+      labels:
+        - "traefik.http.routers.traefik.entrypoints=web"
+        - "traefik.http.routers.traefik.rule=PathPrefix(`/admin/traefik/`) || PathPrefix(`/api`)"
