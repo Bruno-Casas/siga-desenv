@@ -28,10 +28,9 @@ services:
       - siga-network
       - traefik-public
     deploy:
-      placement:
-        constraints:
-          - node.role == manager
       labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik-public"
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.entrypoints=${ENTRY:?Ponto de entrada não definido}"
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.service=siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin"
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.rule=PathPrefix(`/admin/database/`)"
