@@ -116,6 +116,10 @@ deploy_traefik() {
       TLS="true"
       break
       ;;
+    --add)
+      add_stack_file "$2"
+      shift 2;
+      ;;
     *) break ;;
     esac
   done
