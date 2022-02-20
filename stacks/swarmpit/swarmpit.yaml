@@ -20,9 +20,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=traefik-public"
-        - "traefik.http.routers.swarmpit.entrypoints=web"
         - "traefik.http.routers.swarmpit.service=swarmpit"
-        - "traefik.http.routers.swarmpit.rule=PathPrefix(`/admin/swarm/`)"
         - "traefik.http.routers.swarmpit.middlewares=swarmpit-stripprefix"
         - "traefik.http.middlewares.swarmpit-stripprefix.stripprefix.prefixes=/admin/swarm"
         - "traefik.http.services.swarmpit.loadbalancer.server.port=8080"
@@ -40,7 +38,7 @@ services:
   db:
     image: couchdb:2.3.0
     volumes:
-      - db-data:/opt/couchdb/data
+      - ../../data/infra/couchdb:/opt/couchdb/data
     networks:
       - net
     deploy:
@@ -55,7 +53,7 @@ services:
   influxdb:
     image: influxdb:1.7
     volumes:
-      - influx-data:/var/lib/influxdb
+      - ../../data/infra/influxdb:/var/lib/influxdb
     networks:
       - net
     deploy:

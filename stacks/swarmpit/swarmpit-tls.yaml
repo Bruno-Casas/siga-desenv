@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  app:
+    deploy:
+      labels:
+        - "traefik.http.routers.swarmpit.entrypoints=websecure"
+        - "traefik.http.routers.swarmpit.rule=Host(`${INFRA_HOST:?O host para infra não foi definido em INFRA_HOST}`) && PathPrefix(`/admin/swarm/`)"
+        - "traefik.http.routers.swarmpit.tls=true"
+        - "traefik.http.routers.swarmpit.tls.certresolver=letsresolver"

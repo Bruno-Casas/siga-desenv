@@ -4,13 +4,13 @@ services:
   traefik:
     command:
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsresolver.acme.email=${TRAEFIK_ACME_EMAIL:?Email do acme não definido em ACME_EMAIL}"
-      - "--certificatesresolvers.letsresolver.acme.storage=/acme.json"
+      - "--certificatesresolvers.letsresolver.acme.email=${TRAEFIK_ACME_EMAIL:?Email do acme não definido em TRAEFIK_ACME_EMAIL}"
+      - "--certificatesresolvers.letsresolver.acme.storage=/traefik/acme.json"
       - "--certificatesresolvers.letsresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.letsresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.letsresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
     volumes:
-      - "./data/traefik/acme.json:/acme.json"
+      - "../../data/infra/traefik:/traefik"
     ports:
       - target: 443
         published: 443
@@ -26,6 +26,6 @@ services:
         - "traefik.http.routers.traefik-http.middlewares=redirect-to-https"
         # Traefik main router
         - "traefik.http.routers.traefik.entrypoints=websecure"
-        - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_HOST:?Host do traefik não foi definido em TRAEFIK_HOST}`) && (PathPrefix(`/admin/traefik/`) || PathPrefix(`/api`))"
+        - "traefik.http.routers.traefik.rule=Host(`${INFRA_HOST:?Host de infra não foi definido em INFRA_HOST}`) && (PathPrefix(`/admin/traefik/`) || PathPrefix(`/api`))"
         - "traefik.http.routers.traefik.tls=true"
         - "traefik.http.routers.traefik.tls.certresolver=letsresolver"

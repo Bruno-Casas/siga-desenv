@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  app:
+    deploy:
+      labels:
+        - "traefik.http.routers.swarmpit.entrypoints=web"
+        - "traefik.http.routers.swarmpit.rule=PathPrefix(`/admin/swarm/`)"

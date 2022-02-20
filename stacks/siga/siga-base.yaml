@@ -4,15 +4,14 @@ services:
   app:
     image: brunocasas/siga-full
     env_file:
-      - data/siga-${SIGA_SERVICE_POSTFIX-default}/.env
+      - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/.env
     volumes:
-      - ./data/siga-${SIGA_SERVICE_POSTFIX-default}/props/default.properties:/opt/jboss/siga/default.properties
+      - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/props/default.properties:/opt/jboss/siga/default.properties
     networks:
       - traefik-public
       - siga-network
     deploy:
       labels:
-        - "siga-${SIGA_SERVICE_POSTFIX-default}"
         # General
         - "traefik.enable=true"
         - "traefik.docker.network=traefik-public"
@@ -26,6 +25,7 @@ services:
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.middlewares=siga-${SIGA_SERVICE_POSTFIX-default}-rerirect"
         # Siga config
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}.service=siga-${SIGA_SERVICE_POSTFIX-default}"
+        - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}.entrypoints=${ENTRY:?Ponto de entrada não definido}"
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}.rule=PathPrefix(`/siga`)"
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}.loadbalancer.server.port=8080"
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}.loadBalancer.sticky.cookie=true"

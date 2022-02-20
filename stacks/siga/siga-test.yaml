@@ -11,7 +11,7 @@ services:
     image: mysql:8.0.25
     command: --default-authentication-plugin=mysql_native_password --log_bin_trust_function_creators=1
     volumes:
-      - "./data/siga-${SIGA_SERVICE_POSTFIX-default}/db:/var/lib/mysql"
+      - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/db:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: SigaAdmin
       TZ: America/Cuiaba
@@ -37,7 +37,3 @@ services:
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.middlewares=siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin-stripprefix"
         - "traefik.http.middlewares.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin-stripprefix.stripprefix.prefixes=/admin/database"
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.loadbalancer.server.port=80"
-
-networks:
-  traefik-public:
-    external: true

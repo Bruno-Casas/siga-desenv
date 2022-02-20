@@ -1,7 +1,9 @@
 #!/bin/bash
 
-BASE_STACKS_FOLDER="$(dirname --  "$(dirname -- "$(pwd)/$0")")"
-CONFIG_FILE="$BASE_STACKS_FOLDER/bin/siga-infra.conf"
+BASE_FOLDER="$(dirname -- "$(pwd)/$0")"
+DATA_FOLDER="$BASE_FOLDER/data"
+STACKS_FOLDER="$BASE_FOLDER/stacks"
+CONFIG_FILE="$BASE_FOLDER/config/siga-infra.conf"
 
 if command -v docker >/dev/null 2>&1; then
   if ! docker stack ls >/dev/null 2>&1; then
@@ -37,10 +39,8 @@ add_stack_file() {
 }
 
 check_binds() {
-  base_path="$BASE_STACKS_FOLDER/data"
-
-  if [ ! -d "$base_path/siga-$SIGA_SERVICE_POSTFIX" ]; then
-    cp -r "$base_path/base" "$base_path/siga-$SIGA_SERVICE_POSTFIX"
+  if [ ! -d "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX" ]; then
+    cp -r "BASE_FOLDER/config/siga-skel" "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX"
   fi
 }
 
@@ -50,10 +50,10 @@ deploy_siga() {
 #    exit
 #  fi
 
-  add_stack_file "$BASE_STACKS_FOLDER/siga-base.yaml"
+  add_stack_file "$STACKS_FOLDER/siga/siga-base.yaml"
   TLS=""
-
   ENTRY="web"
+
   while true; do
     case "$1" in
     --tls)
@@ -63,17 +63,18 @@ deploy_siga() {
           echo "Para utilizar o siga em produção informe um valor para SIGA_HOST."
           exit 1
       fi
+
       TLS="true"
       ENTRY="websecure"
       ;;
     --test)
       shift
-      add_stack_file "$BASE_STACKS_FOLDER/siga-homo.yaml"
+      add_stack_file "$STACKS_FOLDER/siga/siga-test.yaml"
       ;;
     --dev)
       shift
-      add_stack_file "$BASE_STACKS_FOLDER/siga-homo.yaml"
-      add_stack_file "$BASE_STACKS_FOLDER/siga-dev.yaml"
+      add_stack_file "$STACKS_FOLDER/siga/siga-test.yaml"
+      add_stack_file "$STACKS_FOLDER/siga/siga-dev.yaml"
       ;;
     --alternative-entry)
       shift
@@ -88,16 +89,17 @@ deploy_siga() {
   done
 
   if [ -n "$TLS" ]; then
-    add_stack_file "$BASE_STACKS_FOLDER/siga-tls.yaml"
+    add_stack_file "$STACKS_FOLDER/siga/siga-tls.yaml"
   fi
 
   check_binds
   eval "SIGA_HOST=$SIGA_HOST SIGA_SERVICE_POSTFIX=$SIGA_SERVICE_POSTFIX ENTRY=$ENTRY docker stack deploy$STACKS siga-${SIGA_SERVICE_POSTFIX-default}"
 }
 
-deploy_traefik() {
-  add_stack_file "$BASE_STACKS_FOLDER/traefik-base.yaml"
-  TLS=""
+deploy_infra() {
+  add_stack_file "$STACKS_FOLDER/traefik/traefik-base.yaml"
+  use_tls=false
+  use_panel=false
 
   while true; do
     case "$1" in
@@ -108,35 +110,48 @@ deploy_traefik() {
           echo "Para utilizar o traefik com tls informe um valor para TRAEFIK_ACME_EMAIL."
           exit 1
       fi
-      if [ -z "${TRAEFIK_HOST}" ];
+      if [ -z "${INFRA_HOST}" ];
       then
-          echo "Para utilizar o traefik com tls informe um valor para TRAEFIK_HOST."
+          echo "Para utilizar o traefik com tls informe um valor para INFRA_HOST."
           exit 1
       fi
-      TLS="true"
-      break
+
+      if [ ! -d "$DATA_FOLDER/infra/traefik" ]; then
+        mkdir -p "$DATA_FOLDER/infra/traefik"
+      fi
+
+      use_tls=true
       ;;
     --add)
       add_stack_file "$2"
       shift 2;
       ;;
+    --panel)
+      if [ ! -d "$DATA_FOLDER/infra/couchdb" ]; then
+        mkdir -p "$DATA_FOLDER/infra/couchdb"
+      fi
+
+      if [ ! -d "$DATA_FOLDER/infra/influxdb" ]; then
+        mkdir -p "$DATA_FOLDER/infra/influxdb"
+      fi
+
+      use_panel=true
+      shift 1;
+      ;;
     *) break ;;
     esac
   done
 
-  if [ -n "$TLS" ]; then
-    add_stack_file "$BASE_STACKS_FOLDER/traefik-tls.yaml"
+  $use_panel && add_stack_file "$STACKS_FOLDER/swarmpit/swarmpit.yaml"
+  if $use_tls; then
+    add_stack_file "$STACKS_FOLDER/traefik/traefik-tls.yaml"
+    $use_panel && add_stack_file "$STACKS_FOLDER/swarmpit/swarmpit-tls.yaml"
   else
-     add_stack_file "$BASE_STACKS_FOLDER/traefik-default.yaml"
+     add_stack_file "$STACKS_FOLDER/traefik/traefik-default.yaml"
+     $use_panel && add_stack_file "$STACKS_FOLDER/swarmpit/swarmpit-default.yaml"
   fi
 
-  eval "TRAEFIK_ACME_EMAIL=$TRAEFIK_ACME_EMAIL TRAEFIK_AUTH=$TRAEFIK_AUTH TRAEFIK_HOST=$TRAEFIK_HOST docker stack deploy$STACKS traefik"
-}
-
-deploy_swarmpit() {
-  add_stack_file "$BASE_STACKS_FOLDER/swarmpit.yaml"
-
-  eval "docker stack deploy$STACKS swarmpit"
+  eval "TRAEFIK_ACME_EMAIL=$TRAEFIK_ACME_EMAIL TRAEFIK_AUTH=$TRAEFIK_AUTH INFRA_HOST=$INFRA_HOST docker stack deploy$STACKS infra"
 }
 
 deploy_command() {
@@ -145,17 +160,13 @@ deploy_command() {
   fi
 
   case "$1" in
-  traefik)
+  infra)
     shift
-    eval "deploy_traefik $*"
+    eval "deploy_infra $*"
     ;;
   siga)
     shift
     eval "deploy_siga $*"
-    ;;
-  swarmpit)
-    shift
-    eval "deploy_swarmpit $*"
     ;;
   esac
 }

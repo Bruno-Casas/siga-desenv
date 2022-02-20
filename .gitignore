@@ -1,5 +1,5 @@
 data
-!data/base
+!config/siga-skel
 data/siga-teste/siga.env
 */logs
-/bin/siga-infra.conf
+/config/siga-infra.conf
