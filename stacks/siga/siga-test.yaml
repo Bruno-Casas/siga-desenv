@@ -14,9 +14,14 @@ services:
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/db:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: SigaAdmin
+      MYSQL_USER: siga
+      MYSQL_PASSWORD: siga
       TZ: America/Cuiaba
     networks:
       - siga-network
+    configs:
+      - source: db_config
+        target: /docker-entrypoint-initdb.d/db_siga_grant.sql
 
   phpmyadmin:
     image: phpmyadmin
@@ -37,3 +42,7 @@ services:
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.middlewares=siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin-stripprefix"
         - "traefik.http.middlewares.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin-stripprefix.stripprefix.prefixes=/admin/database"
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.loadbalancer.server.port=80"
+
+configs:
+  db_config:
+    file: ./configs/db_siga_grant.sql

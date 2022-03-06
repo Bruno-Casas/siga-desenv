@@ -40,7 +40,8 @@ add_stack_file() {
 
 check_binds() {
   if [ ! -d "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX" ]; then
-    cp -r "BASE_FOLDER/config/siga-skel" "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX"
+    cp -r "$BASE_FOLDER/config/siga-skel" "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX"
+    cp -r "$BASE_FOLDER/config/siga-skel/.env.example" "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/.env"
   fi
 }
 
