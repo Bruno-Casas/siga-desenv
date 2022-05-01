@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   app:
-    image: brunocasas/siga-full
+    image: brunocasas/siga-full:release
     env_file:
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/.env
     volumes:
