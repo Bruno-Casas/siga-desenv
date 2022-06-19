@@ -101,7 +101,7 @@ deploy_siga() {
     . "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/siga.conf"
   fi
 
-  eval "SIGA_HOST=$SIGA_HOST SIGA_SERVICE_POSTFIX=${SIGA_SERVICE_POSTFIX-default} ENTRY=$ENTRY docker stack deploy$STACKS siga-${SIGA_SERVICE_POSTFIX-default}"
+  eval "SIGA_HOST=$SIGA_HOST SIGA_SERVICE_POSTFIX=${SIGA_SERVICE_POSTFIX-default} ENTRY=$ENTRY SIGA_TAG=$SIGA_TAG docker stack deploy$STACKS siga-${SIGA_SERVICE_POSTFIX-default}"
 }
 
 deploy_infra() {
@@ -164,7 +164,7 @@ deploy_infra() {
      $use_panel && add_stack_file "$STACKS_FOLDER/swarmpit/swarmpit-default.yaml"
   fi
 
-  eval "TRAEFIK_ACME_EMAIL=$TRAEFIK_ACME_EMAIL TRAEFIK_AUTH=$TRAEFIK_AUTH INFRA_HOST=$INFRA_HOST SIGA_TAG=$SIGA_TAG docker stack deploy$STACKS infra"
+  eval "TRAEFIK_ACME_EMAIL=$TRAEFIK_ACME_EMAIL TRAEFIK_AUTH=$TRAEFIK_AUTH INFRA_HOST=$INFRA_HOST docker stack deploy$STACKS infra"
 }
 
 deploy_command() {
@@ -191,22 +191,22 @@ check_binds() {
     conf_file="$siga_dir/siga.conf"
 
     cp -r "$BASE_FOLDER/config/base/siga-skel" "$siga_dir"
-    echo "Pasta de deploy criada: $siga_dir"
+    echo "Pasta de deploy criada: $(realpath $siga_dir)"
 
     cp -r "$conf_file.example" "$conf_file"
-    echo "Aqrquivo de configuração de infra do siga: $conf_file"
+    echo "Aqrquivo de configuração de infra do siga: $(realpath $conf_file)"
 
     cp -r "$env_file.example" "$env_file"
-    echo "Aqrquivo de configuração do ambiente siga: $env_file"
+    echo "Aqrquivo de configuração do ambiente siga: $(realpath $env_file)"
   fi
 }
 
 setup_command() {
   if [ ! -f "$CONFIG_FILE" ]; then
     cp -r "$BASE_FOLDER/config/base/siga-infra.conf.exemple" "$CONFIG_FILE"
-    echo "Arquivo de configuração da infra criado: $CONFIG_FILE"
+    echo "Arquivo de configuração da infra criado: $(realpath $CONFIG_FILE)"
   else
-    echo "Arquivo de configuração da infra já existe: $CONFIG_FILE"  
+    echo "Arquivo de configuração da infra já existe: $(realpath $CONFIG_FILE)"  
   fi
 
   SIGA_SERVICE_POSTFIX="$1"
