@@ -1,0 +1,4 @@
+#!/bin/bash
+
+SIGA_HOST=localhost
+SIGA_TAG=latest

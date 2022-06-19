@@ -15,11 +15,6 @@ else
   exit 1
 fi
 
-if [ -f "$CONFIG_FILE" ]; then
-  # shellcheck disable=SC1090
-  . "$CONFIG_FILE"
-fi
-
 if [ -z "$SIGA_SERVICE_POSTFIX" ]; then
   SIGA_SERVICE_POSTFIX="default"
 fi
@@ -32,28 +27,21 @@ add_stack_file() {
     STACK_FILE=$1
   fi
 
-  echo "$STACK_FILE"
+  echo "$(realpath $STACK_FILE)"
   if [ -f "$STACK_FILE" ]; then
     STACKS="$STACKS -c $STACK_FILE"
   fi
 }
 
-check_binds() {
-  if [ ! -d "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX" ]; then
-    cp -r "$BASE_FOLDER/config/siga-skel" "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX"
-    cp -r "$BASE_FOLDER/config/siga-skel/.env.example" "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/.env"
-  fi
-}
-
 deploy_siga() {
-#  if [ -n "$(docker service ls -q -f "label=siga-$SIGA_SERVICE_POSTFIX")" ]; then
-#    echo "O serviço do siga-$SIGA_SERVICE_POSTFIX já existe!. Por favor redefina a variável SIGA_SERVICE_POSTFIX"
-#    exit
-#  fi
-
   add_stack_file "$STACKS_FOLDER/siga/siga-base.yaml"
   TLS=""
   ENTRY="web"
+
+  if [ -z "${SIGA_SERVICE_POSTFIX}" ];
+  then
+    SIGA_SERVICE_POSTFIX="default"
+  fi
 
   while true; do
     case "$1" in
@@ -85,19 +73,43 @@ deploy_siga() {
       add_stack_file "$2"
       shift 2;
       ;;
+    -n)
+      SIGA_SERVICE_POSTFIX="$2"
+      shift 2;
+      ;;
     *) break ;;
     esac
   done
+
+  if [ ! -d "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX" ]; then
+    if [ "$SIGA_SERVICE_POSTFIX" == "default" ]; then
+      echo "Deploy não especificado. Criando o default"
+      check_binds
+    else
+      echo "O deploy denominado de $SIGA_SERVICE_POSTFIX não foi localizado!"
+      echo "Execute o comando setup <nome do deploy>"
+      exit 1
+    fi
+  fi
 
   if [ -n "$TLS" ]; then
     add_stack_file "$STACKS_FOLDER/siga/siga-tls.yaml"
   fi
 
-  check_binds
-  eval "SIGA_HOST=$SIGA_HOST SIGA_SERVICE_POSTFIX=$SIGA_SERVICE_POSTFIX ENTRY=$ENTRY docker stack deploy$STACKS siga-${SIGA_SERVICE_POSTFIX-default}"
+  if [ -f "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/siga.conf" ]; then
+    # shellcheck disable=SC1090
+    . "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/siga.conf"
+  fi
+
+  eval "SIGA_HOST=$SIGA_HOST SIGA_SERVICE_POSTFIX=${SIGA_SERVICE_POSTFIX-default} ENTRY=$ENTRY docker stack deploy$STACKS siga-${SIGA_SERVICE_POSTFIX-default}"
 }
 
 deploy_infra() {
+  if [ -f "$CONFIG_FILE" ]; then
+    # shellcheck disable=SC1090
+    . "$CONFIG_FILE"
+  fi
+
   add_stack_file "$STACKS_FOLDER/traefik/traefik-base.yaml"
   use_tls=false
   use_panel=false
@@ -152,7 +164,7 @@ deploy_infra() {
      $use_panel && add_stack_file "$STACKS_FOLDER/swarmpit/swarmpit-default.yaml"
   fi
 
-  eval "TRAEFIK_ACME_EMAIL=$TRAEFIK_ACME_EMAIL TRAEFIK_AUTH=$TRAEFIK_AUTH INFRA_HOST=$INFRA_HOST docker stack deploy$STACKS infra"
+  eval "TRAEFIK_ACME_EMAIL=$TRAEFIK_ACME_EMAIL TRAEFIK_AUTH=$TRAEFIK_AUTH INFRA_HOST=$INFRA_HOST SIGA_TAG=$SIGA_TAG docker stack deploy$STACKS infra"
 }
 
 deploy_command() {
@@ -172,9 +184,51 @@ deploy_command() {
   esac
 }
 
+check_binds() {
+  if [ ! -d "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX" ]; then
+    siga_dir="$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX"
+    env_file="$siga_dir/.env"
+    conf_file="$siga_dir/siga.conf"
+
+    cp -r "$BASE_FOLDER/config/base/siga-skel" "$siga_dir"
+    echo "Pasta de deploy criada: $siga_dir"
+
+    cp -r "$conf_file.example" "$conf_file"
+    echo "Aqrquivo de configuração de infra do siga: $conf_file"
+
+    cp -r "$env_file.example" "$env_file"
+    echo "Aqrquivo de configuração do ambiente siga: $env_file"
+  fi
+}
+
+setup_command() {
+  if [ ! -f "$CONFIG_FILE" ]; then
+    cp -r "$BASE_FOLDER/config/base/siga-infra.conf.exemple" "$CONFIG_FILE"
+    echo "Arquivo de configuração da infra criado: $CONFIG_FILE"
+  else
+    echo "Arquivo de configuração da infra já existe: $CONFIG_FILE"  
+  fi
+
+  SIGA_SERVICE_POSTFIX="$1"
+  if [ -z "$SIGA_SERVICE_POSTFIX" ]; then
+    SIGA_SERVICE_POSTFIX="default"
+  fi
+
+  if [ -d "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX" ]; then
+    echo "O deploy com nome $SIGA_SERVICE_POSTFIX já existe!"
+    exit 1
+  fi
+
+  check_binds
+}
+
 case "$1" in
 deploy)
   shift
   eval "deploy_command $*"
+  ;;
+setup)
+  shift
+  eval "setup_command $*"
   ;;
 esac

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-TRAEFIK_ACME_EMAIL=<E-mail. Ex: mail@mail.com>
+#TRAEFIK_ACME_EMAIL=<E-mail. Ex: mail@mail.com>
 TRAEFIK_AUTH='admin:\$apr1\$owaFCsd0\$42owRuQII4kSvhcfq9WB9/' # Teste@123
-SIGA_HOST=teste.com
-INFRA_HOST=teste.com
+INFRA_HOST=localhost
 #SIGA_SERVICE_POSTFIX=teste
