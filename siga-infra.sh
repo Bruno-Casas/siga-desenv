@@ -47,12 +47,6 @@ deploy_siga() {
     case "$1" in
     --tls)
       shift
-      if [ -z "${SIGA_HOST}" ];
-      then
-          echo "Para utilizar o siga em produção informe um valor para SIGA_HOST."
-          exit 1
-      fi
-
       TLS="true"
       ENTRY="websecure"
       ;;
@@ -92,13 +86,19 @@ deploy_siga() {
     fi
   fi
 
-  if [ -n "$TLS" ]; then
-    add_stack_file "$STACKS_FOLDER/siga/siga-tls.yaml"
-  fi
-
   if [ -f "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/siga.conf" ]; then
     # shellcheck disable=SC1090
     . "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/siga.conf"
+  fi
+
+  if [ -n "$TLS" ]; then
+    if [ -z "${SIGA_HOST}" ];
+    then
+        echo "Para utilizar o siga em produção informe um valor para SIGA_HOST."
+        exit 1
+    fi
+
+    add_stack_file "$STACKS_FOLDER/siga/siga-tls.yaml"
   fi
 
   eval "SIGA_HOST=$SIGA_HOST SIGA_SERVICE_POSTFIX=${SIGA_SERVICE_POSTFIX-default} ENTRY=$ENTRY SIGA_TAG=$SIGA_TAG docker stack deploy$STACKS siga-${SIGA_SERVICE_POSTFIX-default}"
