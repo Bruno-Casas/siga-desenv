@@ -19,6 +19,11 @@ if [ -z "$SIGA_SERVICE_POSTFIX" ]; then
   SIGA_SERVICE_POSTFIX="default"
 fi
 
+if [ -f "$CONFIG_FILE" ]; then
+  # shellcheck disable=SC1090
+  . "$CONFIG_FILE"
+fi
+
 STACKS=""
 add_stack_file() {
   if [[ "$1" != /* ]]; then

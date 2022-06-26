@@ -6,7 +6,7 @@ services:
     env_file:
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/.env
     volumes:
-      - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/props/default.properties:/opt/jboss/siga/default.properties
+      - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/props:/opt/jboss/siga/props
     networks:
       - traefik-public
       - siga-network
