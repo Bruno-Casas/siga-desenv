@@ -26,6 +26,6 @@ services:
         - "traefik.http.routers.traefik-http.middlewares=redirect-to-https"
         # Traefik main router
         - "traefik.http.routers.traefik.entrypoints=websecure"
-        - "traefik.http.routers.traefik.rule=Host(`${INFRA_HOST:?Host de infra não foi definido em INFRA_HOST}`) && (PathPrefix(`/admin/traefik/`) || PathPrefix(`/api`))"
+        - "traefik.http.routers.traefik.rule=Host(`${INFRA_HOST:?Host de infra não foi definido em INFRA_HOST}`) && (PathPrefix(`/admin/traefik`) || PathPrefix(`/api`))"
         - "traefik.http.routers.traefik.tls=true"
         - "traefik.http.routers.traefik.tls.certresolver=letsresolver"

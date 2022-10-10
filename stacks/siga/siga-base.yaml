@@ -21,7 +21,7 @@ services:
         # Wildfly root router
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.service=siga-${SIGA_SERVICE_POSTFIX-default}"
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.entrypoints=${ENTRY:?Ponto de entrada não definido}"
-        - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.rule=PathPrefix(`/`) && !PathPrefix(`/admin`)"
+        - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.rule=PathPrefix(`/`) && !(PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/assijus`))"
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.middlewares=siga-${SIGA_SERVICE_POSTFIX-default}-rerirect"
         # Siga config
         - "traefik.http.routers.siga-${SIGA_SERVICE_POSTFIX-default}.service=siga-${SIGA_SERVICE_POSTFIX-default}"
@@ -65,7 +65,22 @@ services:
       # PROP_ASSIJUS_TIMESTAMP_PUBLIC_KEY:
       # PROP_ASSIJUS_TIMESTAMP_PRIVATE_KEY:
     networks:
+      - traefik-public
       - siga-network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik-public"
+        - "traefik.http.routers.assijus-${SIGA_SERVICE_POSTFIX-default}.service=assijus-${SIGA_SERVICE_POSTFIX-default}"
+        - "traefik.http.services.assijus-${SIGA_SERVICE_POSTFIX-default}.loadbalancer.server.port=8080"
+        - "traefik.http.routers.assijus-${SIGA_SERVICE_POSTFIX-default}.entrypoints=${ENTRY:?Ponto de entrada não definido}"
+
+  testsigner:
+    image: brunocasas/testsigner
+#    volumes:
+#      - logvolume01:/var/log
+    environment:
+      PROP_TESTSIGNER_PASSWORD: sigadesenvteste
 
   redis:
     image: redis

@@ -5,4 +5,4 @@ services:
     deploy:
       labels:
         - "traefik.http.routers.swarmpit.entrypoints=web"
-        - "traefik.http.routers.swarmpit.rule=PathPrefix(`/admin/swarm/`)"
+        - "traefik.http.routers.swarmpit.rule=PathPrefix(`/admin/swarm`)"

@@ -5,4 +5,4 @@ services:
     deploy:
       labels:
         - "traefik.http.routers.traefik.entrypoints=web"
-        - "traefik.http.routers.traefik.rule=PathPrefix(`/admin/traefik/`) || PathPrefix(`/api`)"
+        - "traefik.http.routers.traefik.rule=PathPrefix(`/admin/traefik`) || PathPrefix(`/api`)"
