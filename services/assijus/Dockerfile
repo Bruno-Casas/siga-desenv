@@ -2,7 +2,7 @@ FROM jetty:9.3.9-jre8
 MAINTAINER crivano@jfrj.jus.br
 
 #--- DOWNLOAD LATEST VERSION FROM GITHUB
-RUN curl -s https://api.github.com/repos/assijus/assijus/releases/latest \
+RUN curl -s https://api.github.com/repos/Bruno-Casas/assijus/releases/latest \
   | grep browser_download_url \
   | grep assijus.war \
   | cut -d '"' -f 4 \
