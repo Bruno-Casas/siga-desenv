@@ -13,6 +13,11 @@ services:
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.tls=true"
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.tls.certresolver=letsresolver"
 
+        - "traefik.http.routers.dbadmin.entrypoints=websecure"
+        - "traefik.http.routers.dbadmin.rule=Host(`${INFRA_HOST:?O host para infra não foi definido em INFRA_HOST}`) && PathPrefix(`/admin/database/`)"
+        - "traefik.http.routers.dbadmin.tls=true"
+        - "traefik.http.routers.dbadmin.tls.certresolver=letsresolver"
+
   assijus:
     deploy:
       labels:
