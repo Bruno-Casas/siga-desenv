@@ -1,8 +1,8 @@
-version: '3.4'
+version: '3.8'
 
 services:
   app:
-    image: brunocasas/siga-full:${SIGA_TAG-latest}
+    image: pmna/siga-full:${SIGA_TAG-latest}
     env_file:
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/.env
     volumes:
@@ -34,18 +34,18 @@ services:
         condition: on-failure
 
   viz:
-    image: omerio/graphviz-server
+    image: pmna/graphviz-server
     command: "8080"
     networks:
       - siga-network
 
   bluc:
-    image: brunocasas/blucservice
+    image: pmna/blucservice
     networks:
       - siga-network
 
   assijus:
-    image: brunocasas/assijus
+    image: pmna/assijus
     environment:
       PROP_ASSIJUS_REDIS_MASTER_HOST: redis
       PROP_ASSIJUS_REDIS_PASSWORD: ${SIGA_REDIS_PASSWORD-***GUID***}

@@ -1,8 +1,8 @@
-version: '3.4'
+version: '3.8'
 
 services:
   app:
-    image: brunocasas/siga-base
+    image: pmna/siga-base
     volumes:
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/deployments:/opt/jboss/siga/deployments
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/configs:/opt/jboss/siga/configs
