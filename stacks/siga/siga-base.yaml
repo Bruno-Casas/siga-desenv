@@ -30,6 +30,11 @@ services:
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}.loadbalancer.server.port=8080"
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}.loadBalancer.sticky.cookie=true"
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}.loadBalancer.sticky.cookie.name=siga-sticky"
+        # Jmx
+        - "traefik.tcp.routers.jmx.entrypoints=jmx"
+        - "traefik.tcp.routers.jmx.rule=HostSNI(`*`)"
+        - "traefik.tcp.routers.jmx.service=jmx"
+        - "traefik.tcp.services.jmx.loadbalancer.server.port=20200"
       restart_policy:
         condition: on-failure
 
