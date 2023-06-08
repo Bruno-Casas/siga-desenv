@@ -14,6 +14,7 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.test.address=:8181"
       - "--entrypoints.jmx.address=:20200"
+      - "--entrypoints.rmi.address=:20300"
       #- --accesslog
     ports:
       - target: 80
@@ -24,6 +25,9 @@ services:
         mode: host
       - target: 20200
         published: 20200
+        mode: host
+      - target: 20300
+        published: 20300
         mode: host
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
