@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.8'
 
 services:
   app:
@@ -12,6 +12,11 @@ services:
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.rule= Host(`${SIGA_HOST:?Host do siga não foi definido em SIGA_HOST}`) && (PathPrefix(`/`) && !(PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/assijus`)))"
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.tls=true"
         - "traefik.http.routers.wildfly-${SIGA_SERVICE_POSTFIX-default}.tls.certresolver=letsresolver"
+
+        - "traefik.http.routers.dbadmin.entrypoints=websecure"
+        - "traefik.http.routers.dbadmin.rule=Host(`${SIGA_HOST:?O host para infra não foi definido em SIGA_HOST}`) && PathPrefix(`/admin/database/`)"
+        - "traefik.http.routers.dbadmin.tls=true"
+        - "traefik.http.routers.dbadmin.tls.certresolver=letsresolver"
 
   assijus:
     deploy:

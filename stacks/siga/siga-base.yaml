@@ -1,8 +1,8 @@
-version: '3.4'
+version: '3.8'
 
 services:
   app:
-    image: brunocasas/siga-full:${SIGA_TAG-latest}
+    image: pmna/siga-full:${SIGA_TAG-latest}
     env_file:
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/.env
     volumes:
@@ -34,36 +34,31 @@ services:
         condition: on-failure
 
   viz:
-    image: omerio/graphviz-server
+    image: pmna/graphviz-server
     command: "8080"
     networks:
       - siga-network
 
   bluc:
-    image: brunocasas/blucservice
-#    volumes:
-#      - ./logs/bluc:/var/log
+    image: pmna/blucservice
     networks:
       - siga-network
 
   assijus:
-    image: brunocasas/assijus
-#    volumes:
-#      - ./logs/assijus:/var/log
+    image: pmna/assijus
     environment:
       PROP_ASSIJUS_REDIS_MASTER_HOST: redis
-      PROP_ASSIJUS_REDIS_MASTER_PORT: 6379
-      PROP_ASSIJUS_REDIS_SLAVE_HOST:
-      PROP_ASSIJUS_REDIS_SLAVE_PORT:
-      PROP_ASSIJUS_REDIS_PASSWORD: sigadesenv
-      PROP_ASSIJUS_REDIS_DATABASE: 1
+      PROP_ASSIJUS_REDIS_PASSWORD: ${SIGA_REDIS_PASSWORD-***GUID***}
+      PROP_ASSIJUS_REDIS_DATABASE: 2
       PROP_ASSIJUS_BLUCSERVICE_URL: http://bluc:8080/blucservice/api/v1
-      PROP_ASSIJUS_POPUP_URLS: http://localhost:8080
-      PROP_ASSIJUS_SYSTEMS: testsigner
-      PROP_ASSIJUS_TESTSIGNER_URL: http://testsigner:8080/testsigner/api/v1
-      PROP_ASSIJUS_TESTSIGNER_PASSWORD: sigadesenvteste
-      # PROP_ASSIJUS_TIMESTAMP_PUBLIC_KEY:
-      # PROP_ASSIJUS_TIMESTAMP_PRIVATE_KEY:
+      PROP_ASSIJUS_POPUP_URLS: http://${SIGA_HOST:?Host do siga não foi definido em SIGA_HOST};https://${SIGA_HOST};
+      PROP_ASSIJUS_SYSTEMS: sigadoc
+      PROP_ASSIJUS_SIGADOC_URL: http://app:8080/sigaex/api/v1
+      PROP_ASSIJUS_SIGADOC_PASSWORD: ${SIGAEX_ASSINADOR_EXTERNO_PASSWORD-***GUID***}
+#      PROP_ASSIJUS_SIGADOC_URL: http://${SIGA_HOST:?Host do siga não foi definido em SIGA_HOST}/sigaex/api/v1
+#      PROP_ASSIJUS_SIGADOC_PASSWORD: ${SIGAEX.ASSINADOR.EXTERNO.PASSWORD-***GUID***}
+#      PROP_ASSIJUS_SIGADOCHTTPS_URL: https://${SIGA_HOST:?Host do siga não foi definido em SIGA_HOST}/sigaex/api/v1
+#      PROP_ASSIJUS_SIGADOCHTTPS_PASSWORD: ${SIGAEX.ASSINADOR.EXTERNO.PASSWORD-***GUID***}
     networks:
       - traefik-public
       - siga-network
@@ -75,18 +70,16 @@ services:
         - "traefik.http.services.assijus-${SIGA_SERVICE_POSTFIX-default}.loadbalancer.server.port=8080"
         - "traefik.http.routers.assijus-${SIGA_SERVICE_POSTFIX-default}.entrypoints=${ENTRY:?Ponto de entrada não definido}"
 
-  testsigner:
-    image: brunocasas/testsigner
-#    volumes:
-#      - logvolume01:/var/log
-    environment:
-      PROP_TESTSIGNER_PASSWORD: sigadesenvteste
 
   redis:
     image: redis
-    command: redis-server --requirepass sigadesenv
+    command: redis-server --requirepass ${SIGA_REDIS_PASSWORD-***GUID***}
     networks:
       - siga-network
+    ports:
+      - target: 6379
+        published: 6379
+        mode: host
 
 networks:
   traefik-public:

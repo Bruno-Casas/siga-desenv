@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.8'
 
 services:
   app:
@@ -51,7 +51,7 @@ services:
           memory: 128M
 
   influxdb:
-    image: influxdb:1.7
+    image: influxdb:1.8
     volumes:
       - ../../data/infra/influxdb:/var/lib/influxdb
     networks:

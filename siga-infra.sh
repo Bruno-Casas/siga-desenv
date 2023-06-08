@@ -96,13 +96,13 @@ deploy_siga() {
     . "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/siga.conf"
   fi
 
-  if [ -n "$TLS" ]; then
-    if [ -z "${SIGA_HOST}" ];
-    then
-        echo "Para utilizar o siga em produção informe um valor para SIGA_HOST."
-        exit 1
-    fi
+  if [ -z "${SIGA_HOST}" ];
+  then
+      echo "Para utilizar o siga em produção informe um valor para SIGA_HOST."
+      exit 1
+  fi
 
+  if [ -n "$TLS" ]; then
     add_stack_file "$STACKS_FOLDER/siga/siga-tls.yaml"
   fi
 
