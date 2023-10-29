@@ -43,6 +43,13 @@ services:
         - "traefik.http.middlewares.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin-stripprefix.stripprefix.prefixes=/admin/database"
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}-dbadmin.loadbalancer.server.port=80"
 
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+    networks:
+      - siga-network
+
   assijus:
     deploy:
       labels:
