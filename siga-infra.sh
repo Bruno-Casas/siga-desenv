@@ -196,6 +196,7 @@ check_binds() {
     conf_file="$siga_dir/siga.conf"
 
     cp -r "$BASE_FOLDER/config/base/siga-skel" "$siga_dir"
+    touch "$siga_dir/assijus/.env"
     echo "Pasta de deploy criada: $(realpath $siga_dir)"
 
     cp -r "$conf_file.example" "$conf_file"

@@ -46,6 +46,8 @@ services:
 
   assijus:
     image: pmna/assijus
+    env_file:
+      - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/assijus/.env
     environment:
       PROP_ASSIJUS_REDIS_MASTER_HOST: redis
       PROP_ASSIJUS_REDIS_PASSWORD: ${SIGA_REDIS_PASSWORD-***GUID***}
@@ -55,6 +57,7 @@ services:
       PROP_ASSIJUS_SYSTEMS: sigadoc
       PROP_ASSIJUS_SIGADOC_URL: http://app:8080/sigaex/api/v1
       PROP_ASSIJUS_SIGADOC_PASSWORD: ${SIGAEX_ASSINADOR_EXTERNO_PASSWORD-***GUID***}
+      PROP_ASSIJUS_TIMESTAMP_ISSUER: Assijus PMNA
 #      PROP_ASSIJUS_SIGADOC_URL: http://${SIGA_HOST:?Host do siga não foi definido em SIGA_HOST}/sigaex/api/v1
 #      PROP_ASSIJUS_SIGADOC_PASSWORD: ${SIGAEX.ASSINADOR.EXTERNO.PASSWORD-***GUID***}
 #      PROP_ASSIJUS_SIGADOCHTTPS_URL: https://${SIGA_HOST:?Host do siga não foi definido em SIGA_HOST}/sigaex/api/v1
