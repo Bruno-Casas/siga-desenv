@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: pmna/siga-base
+    image: pmna/siga-base:26.1
     volumes:
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/deployments:/opt/jboss/siga/deployments
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/configs:/opt/jboss/siga/configs
