@@ -33,9 +33,10 @@ services:
       restart_policy:
         condition: on-failure
 
-  viz:
-    image: pmna/graphviz-server
-    command: "8080"
+  graphviz:
+    image: brunocasas/graphviz-server
+    environment:
+      NUMBER_OF_WORKERS: 2
     networks:
       - siga-network
 
