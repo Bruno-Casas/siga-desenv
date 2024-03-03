@@ -1,7 +1,6 @@
 #!/bin/bash
 
 BASE_FOLDER="$(dirname -- "$(pwd)/$0")"
-DATA_FOLDER="$BASE_FOLDER/data"
 STACKS_FOLDER="$BASE_FOLDER/stacks"
 CONFIG_FILE="$BASE_FOLDER/config/siga-infra.conf"
 
@@ -18,6 +17,7 @@ fi
 if [ -z "$SIGA_SERVICE_POSTFIX" ]; then
   SIGA_SERVICE_POSTFIX="default"
 fi
+DATA_FOLDER="$BASE_FOLDER/data/siga-$SIGA_SERVICE_POSTFIX"
 
 if [ -f "$CONFIG_FILE" ]; then
   # shellcheck disable=SC1090
@@ -80,7 +80,7 @@ deploy_siga() {
     esac
   done
 
-  if [ ! -d "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX" ]; then
+  if [ ! -d "$DATA_FOLDER" ]; then
     if [ "$SIGA_SERVICE_POSTFIX" == "default" ]; then
       echo "Deploy não especificado. Criando o default"
       check_binds
@@ -91,9 +91,9 @@ deploy_siga() {
     fi
   fi
 
-  if [ -f "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/siga.conf" ]; then
+  if [ -f "$DATA_FOLDER/siga.conf" ]; then
     # shellcheck disable=SC1090
-    . "$DATA_FOLDER/siga-$SIGA_SERVICE_POSTFIX/siga.conf"
+    . "$DATA_FOLDER/siga.conf"
   fi
 
   if [ -z "${SIGA_HOST}" ];
@@ -106,7 +106,7 @@ deploy_siga() {
     add_stack_file "$STACKS_FOLDER/siga/siga-tls.yaml"
   fi
 
-  eval "SIGA_HOST=$SIGA_HOST SIGA_SERVICE_POSTFIX=${SIGA_SERVICE_POSTFIX-default} ENTRY=$ENTRY SIGA_TAG=$SIGA_TAG docker stack deploy$STACKS siga-${SIGA_SERVICE_POSTFIX-default}"
+  eval "DATA_FOLDER=$DATA_FOLDER SIGA_HOST=$SIGA_HOST SIGA_SERVICE_POSTFIX=${SIGA_SERVICE_POSTFIX-default} ENTRY=$ENTRY SIGA_TAG=$SIGA_TAG docker stack deploy$STACKS siga-${SIGA_SERVICE_POSTFIX-default}"
 }
 
 deploy_infra() {

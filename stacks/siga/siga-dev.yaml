@@ -6,3 +6,13 @@ services:
     volumes:
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/deployments:/opt/jboss/siga/deployments
       - ../../data/siga-${SIGA_SERVICE_POSTFIX-default}/configs:/opt/jboss/siga/configs
+
+  smb:
+    image: dockurr/samba
+    environment:
+      USER: samba
+      PASS: secret
+    volumes:
+      - ${DATA_FOLDER}/smb:/storage
+    networks:
+      - siga-network
