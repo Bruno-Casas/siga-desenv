@@ -31,6 +31,11 @@ services:
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}.loadbalancer.server.port=8080"
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}.loadBalancer.sticky.cookie=true"
         - "traefik.http.services.siga-${SIGA_SERVICE_POSTFIX-default}.loadBalancer.sticky.cookie.name=siga-sticky"
+        # TCP management
+        - "traefik.tcp.routers.manager.entrypoints=dev"
+        - "traefik.tcp.routers.manager.rule=HostSNI(`*`)"
+        - "traefik.tcp.routers.manager.service=manager"
+        - "traefik.tcp.services.manager.loadbalancer.server.port=9990"
       restart_policy:
         condition: on-failure
 
